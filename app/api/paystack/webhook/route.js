@@ -1,0 +1,60 @@
+import crypto from 'crypto';
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { verifyTransaction } from '../../../../lib/paystack';
+import { sendEmail, orderPaidEmail } from '../../../../lib/email';
+
+// Paystack calls this URL automatically when a payment event happens.
+// Set it in Paystack dashboard > Settings > API Keys & Webhooks:
+//   https://your-site.vercel.app/api/paystack/webhook
+
+export async function POST(req) {
+  const rawBody = await req.text();
+  const signature = req.headers.get('x-paystack-signature');
+
+  // Verify the request really came from Paystack, not someone faking a "payment success" call.
+  const expectedSignature = crypto
+    .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+    .update(rawBody)
+    .digest('hex');
+
+  if (signature !== expectedSignature) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
+
+  const event = JSON.parse(rawBody);
+
+  if (event.event === 'charge.success') {
+    const reference = event.data.reference;
+
+    // Double-check directly with Paystack rather than trusting the webhook body alone.
+    const verified = await verifyTransaction(reference);
+    if (verified.status !== 'success') {
+      return NextResponse.json({ received: true });
+    }
+
+    const { data: order } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('tracking_code', reference)
+      .single();
+
+    if (order && order.status === 'pending_payment') {
+      await supabaseAdmin
+        .from('orders')
+        .update({ status: 'paid', paystack_reference: reference, updated_at: new Date().toISOString() })
+        .eq('id', order.id);
+
+      await supabaseAdmin.from('order_status_history').insert({
+        order_id: order.id,
+        status: 'paid',
+        note: 'Payment confirmed via Paystack',
+      });
+
+      const { subject, html } = orderPaidEmail({ name: order.customer_name, trackingCode: order.tracking_code });
+      await sendEmail({ to: order.customer_email, subject, html });
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}
