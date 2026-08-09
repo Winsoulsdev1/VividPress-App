@@ -10,7 +10,6 @@ export default function CartPage() {
     <>
       <Header />
       <div className="wrap section">
-        <Link href="/" style={{ display: 'inline-block', marginBottom: 16, fontWeight: 600, fontSize: 14, opacity: 0.7 }}>← Back to shop</Link>
         <h1>Your cart</h1>
 
         {items.length === 0 && (
