@@ -50,7 +50,7 @@ export default function Header() {
           </svg>
           {count > 0 && (
             <span style={{
-              position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 999,
+              position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 999,
               background: 'var(--grad)', color: '#fff', fontSize: 11, fontWeight: 800,
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
             }}>

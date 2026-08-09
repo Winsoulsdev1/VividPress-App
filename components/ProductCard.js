@@ -37,6 +37,10 @@ export default function ProductCard({ product }) {
   async function handleImageChange(e) {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('That image is too large — please use a file under 5MB.');
+      return;
+    }
     setUploading(true);
     setUploadError('');
     try {
@@ -47,7 +51,8 @@ export default function ProductCard({ product }) {
       const { data } = supabase.storage.from('branding-uploads').getPublicUrl(filePath);
       setBrandingImageUrl(data.publicUrl);
     } catch (err) {
-      setUploadError('Could not upload — try a smaller image');
+      console.error(err);
+      setUploadError(err?.message || 'Could not upload this image — please try again.');
     } finally {
       setUploading(false);
     }
