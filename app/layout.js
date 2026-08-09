@@ -1,5 +1,6 @@
 import './globals.css';
 import { CartProvider } from '../lib/cart';
+import FloatingWhatsApp from '../components/FloatingWhatsApp';
 
 export const metadata = {
   title: 'VividPress — Print. Press. Impress.',
@@ -12,12 +13,15 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800;900&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Bebas+Neue&family=Pacifico&family=Roboto+Slab:wght@700&family=Oswald:wght@600&family=Dancing+Script:wght@700&display=swap"
           rel="stylesheet"
         />
       </head>
       <body>
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          {children}
+          <FloatingWhatsApp />
+        </CartProvider>
       </body>
     </html>
   );

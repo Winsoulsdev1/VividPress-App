@@ -1,6 +1,21 @@
 'use client';
 import { useState } from 'react';
 import { useCart } from '../lib/cart';
+import { supabase } from '../lib/supabase';
+
+const FONT_OPTIONS = [
+  'Poppins', 'Inter', 'Playfair Display', 'Bebas Neue',
+  'Pacifico', 'Roboto Slab', 'Oswald', 'Dancing Script',
+];
+
+const BRANDING_COLORS = [
+  { name: 'Black', hex: '#111111' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Red', hex: '#F52D20' },
+  { name: 'Gold', hex: '#FECD01' },
+  { name: 'Navy', hex: '#0B0F2E' },
+  { name: 'Cyan', hex: '#00B9FC' },
+];
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
@@ -10,9 +25,33 @@ export default function ProductCard({ product }) {
   const [quantity, setQuantity] = useState(1);
   const [wantsBranding, setWantsBranding] = useState(false);
   const [brandingDetails, setBrandingDetails] = useState('');
+  const [brandingFont, setBrandingFont] = useState(FONT_OPTIONS[0]);
+  const [brandingColor, setBrandingColor] = useState(BRANDING_COLORS[0].name);
+  const [brandingImageUrl, setBrandingImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [added, setAdded] = useState(false);
 
   const unitPrice = product.price_min;
+
+  async function handleImageChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const ext = file.name.split('.').pop();
+      const filePath = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('branding-uploads').upload(filePath, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from('branding-uploads').getPublicUrl(filePath);
+      setBrandingImageUrl(data.publicUrl);
+    } catch (err) {
+      setUploadError('Could not upload — try a smaller image');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function handleAdd() {
     addItem({
@@ -24,6 +63,9 @@ export default function ProductCard({ product }) {
       color,
       brandingRequested: wantsBranding,
       brandingDetails: wantsBranding ? brandingDetails : '',
+      brandingFont: wantsBranding ? brandingFont : '',
+      brandingColor: wantsBranding ? brandingColor : '',
+      brandingImageUrl: wantsBranding ? brandingImageUrl : '',
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -41,7 +83,7 @@ export default function ProductCard({ product }) {
           borderRadius: 999, color: '#fff', background: 'var(--grad)'
         }}>VividPress</span>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 20 }}>
-          {colors.map((c, i) => (
+          {colors.map((c) => (
             <button
               key={c.name}
               type="button"
@@ -59,9 +101,7 @@ export default function ProductCard({ product }) {
 
       <div className="card-inner">
         <h3 style={{ fontSize: 17, marginBottom: 6 }}>{product.name}</h3>
-        <p style={{ fontSize: 13, opacity: 0.6, marginBottom: 12 }}>
-          {product.sizes}
-        </p>
+        <p style={{ fontSize: 13, opacity: 0.6, marginBottom: 12 }}>{product.sizes}</p>
         <p style={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, marginBottom: 14 }}>
           ₦{product.price_min.toLocaleString()} – ₦{product.price_max.toLocaleString()}
         </p>
@@ -89,14 +129,84 @@ export default function ProductCard({ product }) {
         </div>
 
         {wantsBranding && (
-          <div className="field">
-            <label>Branding details</label>
-            <textarea
-              rows={2}
-              value={brandingDetails}
-              onChange={(e) => setBrandingDetails(e.target.value)}
-              placeholder="Logo, text, colours..."
-            />
+          <div style={{ border: '1px solid var(--line)', borderRadius: 14, padding: 14, marginBottom: 14, background: 'var(--paper-soft)' }}>
+
+            <div className="field">
+              <label>Upload a design or logo (optional)</label>
+              {brandingImageUrl ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <img
+                    src={brandingImageUrl}
+                    alt="Branding upload preview"
+                    style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--line)' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    style={{ padding: '6px 12px', fontSize: 12 }}
+                    onClick={() => setBrandingImageUrl('')}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 56, height: 56, borderRadius: 12, border: '2px dashed var(--line)',
+                  cursor: uploading ? 'wait' : 'pointer', fontSize: 26, fontWeight: 700,
+                  color: 'var(--magenta)', background: '#fff',
+                }}>
+                  {uploading ? '…' : '+'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={uploading}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              )}
+              {uploadError && <p style={{ color: 'var(--red)', fontSize: 12, marginTop: 6 }}>{uploadError}</p>}
+            </div>
+
+            <div className="field">
+              <label>Branding font</label>
+              <select value={brandingFont} onChange={(e) => setBrandingFont(e.target.value)}>
+                {FONT_OPTIONS.map((f) => (
+                  <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>Branding colour (ink / thread)</label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {BRANDING_COLORS.map((c) => (
+                  <button
+                    key={c.name}
+                    type="button"
+                    onClick={() => setBrandingColor(c.name)}
+                    title={c.name}
+                    style={{
+                      width: 26, height: 26, borderRadius: '50%', background: c.hex,
+                      border: brandingColor === c.name ? '2px solid var(--ink)' : '1.5px solid rgba(11,15,46,0.2)',
+                      cursor: 'pointer',
+                      boxShadow: brandingColor === c.name ? '0 0 0 2px #fff, 0 0 0 3.5px var(--ink)' : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Notes (text to print, placement, anything else)</label>
+              <textarea
+                rows={2}
+                value={brandingDetails}
+                onChange={(e) => setBrandingDetails(e.target.value)}
+                placeholder="e.g. Print 'My Love' on the chest"
+              />
+            </div>
           </div>
         )}
 

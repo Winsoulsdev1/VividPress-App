@@ -46,6 +46,9 @@ create table order_items (
   color text,
   branding_requested boolean not null default false,
   branding_details text,
+  branding_font text,
+  branding_color text,
+  branding_image_url text,
   unit_price numeric not null,
   line_total numeric not null
 );

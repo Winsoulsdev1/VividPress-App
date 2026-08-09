@@ -48,6 +48,9 @@ export async function POST(req) {
       color: i.color,
       branding_requested: i.brandingRequested,
       branding_details: i.brandingDetails,
+      branding_font: i.brandingFont,
+      branding_color: i.brandingColor,
+      branding_image_url: i.brandingImageUrl,
       unit_price: i.unitPrice,
       line_total: i.unitPrice * i.quantity,
     }));

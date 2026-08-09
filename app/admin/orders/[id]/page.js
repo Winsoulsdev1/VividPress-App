@@ -40,7 +40,25 @@ export default async function AdminOrderDetailPage({ params }) {
               <td>{item.size}</td>
               <td>{item.color}</td>
               <td>{item.quantity}</td>
-              <td>{item.branding_requested ? item.branding_details || 'Yes' : '—'}</td>
+              <td>
+                {item.branding_requested ? (
+                  <div style={{ fontSize: 13 }}>
+                    {item.branding_font && <div>Font: {item.branding_font}</div>}
+                    {item.branding_color && <div>Colour: {item.branding_color}</div>}
+                    {item.branding_details && <div>Notes: {item.branding_details}</div>}
+                    {item.branding_image_url && (
+                      <a href={item.branding_image_url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={item.branding_image_url}
+                          alt="Branding upload"
+                          style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, marginTop: 4 }}
+                        />
+                      </a>
+                    )}
+                    {!item.branding_font && !item.branding_color && !item.branding_details && !item.branding_image_url && 'Yes'}
+                  </div>
+                ) : '—'}
+              </td>
             </tr>
           ))}
         </tbody>

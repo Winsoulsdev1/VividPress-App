@@ -61,8 +61,13 @@ export default async function HomePage() {
       </div>
 
       <div className="wrap section soft">
-        <span className="tag">What customers say</span>
-        <h2>Reviews</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <span className="tag">What customers say</span>
+            <h2>Reviews</h2>
+          </div>
+          <a href="/reviews" className="btn ghost">Leave a review →</a>
+        </div>
         <div className="grid" style={{ marginTop: 24 }}>
           {(reviews || []).map((r) => (
             <ReviewCard key={r.id} review={r} />

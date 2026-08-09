@@ -29,9 +29,36 @@ export default function Header() {
           ← Shop
         </Link>
       )}
-      <Link href="/cart" className="btn ghost">
-        Cart {count > 0 ? `(${count})` : ''}
-      </Link>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <Link href="/reviews" style={{ fontWeight: 600, fontSize: 14 }}>
+          Reviews
+        </Link>
+
+        <Link
+          href="/cart"
+          aria-label="View cart"
+          style={{
+            position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 44, height: 44, borderRadius: '50%', border: '1.5px solid var(--line)',
+          }}
+        >
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          {count > 0 && (
+            <span style={{
+              position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 999,
+              background: 'var(--grad)', color: '#fff', fontSize: 11, fontWeight: 800,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
+            }}>
+              {count}
+            </span>
+          )}
+        </Link>
+      </div>
     </div>
   );
 }
