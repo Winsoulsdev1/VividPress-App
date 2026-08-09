@@ -19,7 +19,7 @@ export default function CartPage() {
         )}
 
         {items.map((item) => (
-          <div key={item.cartId} className="card" style={{ marginBottom: 14 }}>
+          <div key={item.cartId} className="card" style={{ marginBottom: 14, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <strong>{item.name}</strong>
               <button className="btn ghost" onClick={() => removeItem(item.cartId)}>
