@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { isAdmin } from '../../../../lib/adminAuth';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import StatusUpdateForm from '../../../../components/StatusUpdateForm';
+import AdminNav from '../../../../components/AdminNav';
 
 export const revalidate = 0;
 
@@ -15,7 +16,12 @@ export default async function AdminOrderDetailPage({ params }) {
     .single();
 
   if (!order) {
-    return <div className="wrap section"><h1>Order not found</h1></div>;
+    return (
+      <>
+        <AdminNav backHref="/admin/orders" backLabel="Back to orders" />
+        <div className="wrap section" style={{ paddingTop: 0 }}><h1>Order not found</h1></div>
+      </>
+    );
   }
 
   const history = [...(order.order_status_history || [])].sort(
@@ -23,8 +29,10 @@ export default async function AdminOrderDetailPage({ params }) {
   );
 
   return (
-    <div className="wrap section">
-      <h1>Order {order.tracking_code}</h1>
+    <>
+      <AdminNav backHref="/admin/orders" backLabel="Back to orders" />
+      <div className="wrap section" style={{ paddingTop: 0 }}>
+        <h1>Order {order.tracking_code}</h1>
       <p>{order.customer_name} · {order.customer_email} · {order.customer_phone}</p>
       <p style={{ opacity: 0.7 }}>{order.delivery_address}</p>
 
@@ -75,6 +83,7 @@ export default async function AdminOrderDetailPage({ params }) {
           </li>
         ))}
       </ul>
-    </div>
+      </div>
+    </>
   );
 }
