@@ -176,11 +176,23 @@ export default function ProductCard({ product }) {
 
             <div className="field">
               <label>Branding font</label>
-              <select value={brandingFont} onChange={(e) => setBrandingFont(e.target.value)}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {FONT_OPTIONS.map((f) => (
-                  <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setBrandingFont(f)}
+                    style={{
+                      textAlign: 'left', padding: '10px 14px', borderRadius: 10,
+                      border: brandingFont === f ? '2px solid var(--ink)' : '1.5px solid var(--line)',
+                      background: '#fff', cursor: 'pointer',
+                      fontFamily: f, fontSize: 17, fontWeight: 700, color: 'var(--ink)',
+                    }}
+                  >
+                    {f}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div className="field">

@@ -51,7 +51,7 @@ export default async function AdminOrderDetailPage({ params }) {
               <td>
                 {item.branding_requested ? (
                   <div style={{ fontSize: 13 }}>
-                    {item.branding_font && <div>Font: {item.branding_font}</div>}
+                    {item.branding_font && <div>Font: <span style={{ fontFamily: item.branding_font, fontWeight: 700 }}>{item.branding_font}</span></div>}
                     {item.branding_color && <div>Colour: {item.branding_color}</div>}
                     {item.branding_details && <div>Notes: {item.branding_details}</div>}
                     {item.branding_image_url && (
