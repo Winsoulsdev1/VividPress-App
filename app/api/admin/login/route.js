@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { adminSessionToken } from '../../../../lib/adminAuth';
 
 export async function POST(req) {
   const { password } = await req.json();
@@ -8,9 +9,7 @@ export async function POST(req) {
   }
 
   const res = NextResponse.json({ ok: true });
-  // Simple session cookie. Good enough for a one-person admin panel;
-  // upgrade to real auth (e.g. Supabase Auth) if more people need access later.
-  res.cookies.set('vp_admin', process.env.ADMIN_PASSWORD, {
+  res.cookies.set('vp_admin', adminSessionToken(), {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',

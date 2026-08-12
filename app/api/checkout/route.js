@@ -18,7 +18,35 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
-    const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    // SECURITY: never trust prices sent from the browser — they can be edited
+    // before the request is sent. Look up the real price for every item
+    // directly from the database and use that instead.
+    const productIds = items.map((i) => i.productId).filter(Boolean);
+    const { data: products, error: productsError } = await supabaseAdmin
+      .from('products')
+      .select('id, name, price_min, active')
+      .in('id', productIds);
+
+    if (productsError) throw productsError;
+
+    const priceById = new Map((products || []).map((p) => [p.id, p]));
+
+    const verifiedItems = [];
+    for (const i of items) {
+      const product = priceById.get(i.productId);
+      if (!product || !product.active) {
+        return NextResponse.json({ error: `${i.name || 'An item'} is no longer available` }, { status: 400 });
+      }
+      const quantity = Math.max(1, Number(i.quantity) || 1);
+      verifiedItems.push({
+        ...i,
+        quantity,
+        unitPrice: product.price_min, // real price, ignoring whatever the browser sent
+        name: product.name,
+      });
+    }
+
+    const subtotal = verifiedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
     const trackingCode = generateTrackingCode();
 
     // 1. Create the order
@@ -40,7 +68,7 @@ export async function POST(req) {
     if (orderError) throw orderError;
 
     // 2. Create order items
-    const itemRows = items.map((i) => ({
+    const itemRows = verifiedItems.map((i) => ({
       order_id: order.id,
       product_name: i.name,
       quantity: i.quantity,

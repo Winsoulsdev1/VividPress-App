@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { supabaseAdmin } from '../../../../../../lib/supabaseAdmin';
+import { isAdmin } from '../../../../../../lib/adminAuth';
 import {
   sendEmail,
   orderInProductionEmail,
@@ -15,8 +15,7 @@ const EMAIL_BY_STATUS = {
 };
 
 export async function POST(req, { params }) {
-  const cookie = cookies().get('vp_admin');
-  if (cookie?.value !== process.env.ADMIN_PASSWORD) {
+  if (!isAdmin()) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
   }
 

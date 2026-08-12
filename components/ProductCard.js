@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useCart } from '../lib/cart';
-import { supabase } from '../lib/supabase';
 
 const FONT_OPTIONS = [
   'Poppins', 'Inter', 'Playfair Display', 'Bebas Neue',
@@ -44,12 +43,12 @@ export default function ProductCard({ product }) {
     setUploading(true);
     setUploadError('');
     try {
-      const ext = file.name.split('.').pop();
-      const filePath = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from('branding-uploads').upload(filePath, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from('branding-uploads').getPublicUrl(filePath);
-      setBrandingImageUrl(data.publicUrl);
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload-branding-image', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setBrandingImageUrl(data.url);
     } catch (err) {
       console.error(err);
       setUploadError(err?.message || 'Could not upload this image — please try again.');
