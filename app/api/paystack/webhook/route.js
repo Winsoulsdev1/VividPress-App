@@ -8,6 +8,8 @@ import { sendEmail, orderPaidEmail } from '../../../../lib/email';
 // Set it in Paystack dashboard > Settings > API Keys & Webhooks:
 //   https://your-site.vercel.app/api/paystack/webhook
 
+const OWNER_EMAIL = 'VividPress.ng@gmail.com';
+
 export async function POST(req) {
   const rawBody = await req.text();
   const signature = req.headers.get('x-paystack-signature');
@@ -53,6 +55,22 @@ export async function POST(req) {
 
       const { subject, html } = orderPaidEmail({ name: order.customer_name, trackingCode: order.tracking_code });
       await sendEmail({ to: order.customer_email, subject, html });
+
+      // Notify the business owner that a new paid order has come in.
+      await sendEmail({
+        to: OWNER_EMAIL,
+        subject: `New order paid — ${order.tracking_code}`,
+        html: `
+          <p>You've got a new paid order.</p>
+          <p><strong>Tracking code:</strong> ${order.tracking_code}</p>
+          <p><strong>Customer:</strong> ${order.customer_name}</p>
+          <p><strong>Phone:</strong> ${order.customer_phone}</p>
+          <p><strong>Email:</strong> ${order.customer_email}</p>
+          <p><strong>Delivery address:</strong> ${order.delivery_address}</p>
+          <p><strong>Total:</strong> ₦${order.total}</p>
+          <p>View it in your admin panel to see full branding details.</p>
+        `,
+      });
     }
   }
 
