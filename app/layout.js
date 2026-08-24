@@ -1,6 +1,7 @@
 import './globals.css';
 import { CartProvider } from '../lib/cart';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
+import Footer from '../components/Footer';
 
 export const metadata = {
   title: 'VividPress — Print. Press. Impress.',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
         <CartProvider>
           {children}
           <FloatingWhatsApp />
+          <Footer />
         </CartProvider>
       </body>
     </html>
