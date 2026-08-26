@@ -13,7 +13,8 @@ export default function AdminNav({ backHref, backLabel }) {
         </Link>
         <div style={{ display: 'flex', gap: 18, fontSize: 14, fontWeight: 600 }}>
           <Link href="/admin/orders" style={{ color: '#fff', opacity: 0.85 }}>Orders</Link>
-          <Link href="/admin/reviews" style={{ color: '#fff', opacity: 0.85 }}>Reviews</Link>
+            <Link href="/admin/reviews" style={{ color: '#fff', opacity: 0.85 }}>Reviews</Link>
+            <Link href="/admin/products/new" style={{ color: '#fff', opacity: 0.85 }}>Add Product</Link>
         </div>
       </div>
       {backHref && (
