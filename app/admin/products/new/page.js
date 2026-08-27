@@ -6,11 +6,8 @@ import AdminNav from '../../../../components/AdminNav';
 
 export default function NewProductPage() {
   const router = useRouter();
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [imagePreview, setImagePreview] = useState('');
 
   const [form, setForm] = useState({
     name: '',
@@ -21,12 +18,30 @@ export default function NewProductPage() {
     sizes: '',
   });
 
-  async function handleImageChange(e) {
+  const [colors, setColors] = useState([
+    { name: '', hex: '#111111', imageUrl: '', imagePreview: '', uploading: false },
+  ]);
+
+  function addColorRow() {
+    setColors([...colors, { name: '', hex: '#111111', imageUrl: '', imagePreview: '', uploading: false }]);
+  }
+
+  function removeColorRow(index) {
+    setColors(colors.filter((_, i) => i !== index));
+  }
+
+  function updateColorField(index, field, value) {
+    const next = [...colors];
+    next[index] = { ...next[index], [field]: value };
+    setColors(next);
+  }
+
+  async function handleColorImageChange(index, e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    setImagePreview(URL.createObjectURL(file));
-    setUploading(true);
+    updateColorField(index, 'imagePreview', URL.createObjectURL(file));
+    updateColorField(index, 'uploading', true);
     setError('');
 
     try {
@@ -38,19 +53,25 @@ export default function NewProductPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
-      setImageUrl(data.url);
+      updateColorField(index, 'imageUrl', data.url);
     } catch (err) {
       setError(err.message);
     } finally {
-      setUploading(false);
+      updateColorField(index, 'uploading', false);
     }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setSaving(true);
 
+    const validColors = colors.filter((c) => c.name.trim());
+    if (validColors.some((c) => !c.imageUrl)) {
+      setError('Please upload a photo for every color you added.');
+      return;
+    }
+
+    setSaving(true);
     try {
       const res = await fetch('/api/admin/products', {
         method: 'POST',
@@ -62,7 +83,8 @@ export default function NewProductPage() {
           priceMin: Number(form.priceMin),
           priceMax: form.priceMax ? Number(form.priceMax) : undefined,
           sizes: form.sizes,
-          imageUrl,
+          colors: validColors.map((c) => ({ name: c.name, hex: c.hex, imageUrl: c.imageUrl })),
+          imageUrl: validColors[0]?.imageUrl || '',
         }),
       });
       const data = await res.json();
@@ -75,6 +97,8 @@ export default function NewProductPage() {
     }
   }
 
+  const anyUploading = colors.some((c) => c.uploading);
+
   return (
     <div>
       <AdminNav backHref="/admin/orders" backLabel="Back to Orders" />
@@ -86,15 +110,6 @@ export default function NewProductPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold mb-1">Product Photo</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
-            {uploading && <p className="text-sm text-gray-500 mt-1">Uploading...</p>}
-            {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="mt-3 w-40 h-40 object-cover rounded border" />
-            )}
-          </div>
-
           <div>
             <label className="block text-sm font-semibold mb-1">Product Name</label>
             <input
@@ -162,9 +177,58 @@ export default function NewProductPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-semibold mb-2">Colors & Photos</label>
+            <p className="text-xs text-gray-500 mb-3">Add each color your product comes in, along with its own photo. Customers will see the matching photo when they tap a color.</p>
+
+            <div className="space-y-4">
+              {colors.map((c, index) => (
+                <div key={index} className="border rounded-lg p-3 flex gap-3 items-start">
+                  <input
+                    type="color"
+                    value={c.hex}
+                    onChange={(e) => updateColorField(index, 'hex', e.target.value)}
+                    className="w-10 h-10 rounded border"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      value={c.name}
+                      onChange={(e) => updateColorField(index, 'name', e.target.value)}
+                      className="w-full border rounded px-3 py-2"
+                      placeholder="Color name, e.g. Navy"
+                    />
+                    <input type="file" accept="image/*" onChange={(e) => handleColorImageChange(index, e)} />
+                    {c.uploading && <p className="text-xs text-gray-500">Uploading...</p>}
+                    {c.imagePreview && (
+                      <img src={c.imagePreview} alt="Preview" className="w-20 h-20 object-cover rounded border" />
+                    )}
+                  </div>
+                  {colors.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeColorRow(index)}
+                      className="text-red-600 text-sm font-semibold"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addColorRow}
+              className="mt-3 text-sm font-semibold text-blue-600"
+            >
+              + Add another color
+            </button>
+          </div>
+
           <button
             type="submit"
-            disabled={saving || uploading}
+            disabled={saving || anyUploading}
             className="w-full bg-black text-white py-3 rounded font-semibold disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Add Product'}
@@ -173,4 +237,4 @@ export default function NewProductPage() {
       </div>
     </div>
   );
-             }
+}
