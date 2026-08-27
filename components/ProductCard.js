@@ -1,8 +1,10 @@
+'use client';
+
 import { useState } from 'react';
 import { useCart } from '../lib/cart';
 
 const FONT_OPTIONS = [
-  'Poppins', 'Inter', 'Playfair Display', 'Bebas Neue',
+  'Poppins', 'Inter', 'Playfair Display','Bebas Neue',
   'Pacifico', 'Roboto Slab', 'Oswald', 'Dancing Script',
 ];
 
