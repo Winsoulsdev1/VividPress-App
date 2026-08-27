@@ -1,4 +1,3 @@
-'use client';
 import { useState } from 'react';
 import { useCart } from '../lib/cart';
 
@@ -32,6 +31,11 @@ export default function ProductCard({ product }) {
   const [added, setAdded] = useState(false);
 
   const unitPrice = product.price_min;
+
+  // Show the photo for whichever color is currently selected.
+  // Falls back to the product's main image if a color has no photo of its own.
+  const selectedColorObj = colors.find((c) => c.name === color);
+  const displayImage = selectedColorObj?.imageUrl || product.image_url;
 
   async function handleImageChange(e) {
     const file = e.target.files[0];
@@ -79,14 +83,25 @@ export default function ProductCard({ product }) {
     <div className="card">
       <div style={{
         aspectRatio: '1/1', position: 'relative', background: 'var(--paper-soft)',
-        padding: '28px 18px', textAlign: 'center'
+        textAlign: 'center', overflow: 'hidden',
       }}>
+        {displayImage ? (
+          <img
+            src={displayImage}
+            alt={product.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink)', opacity: 0.3, fontSize: 13, fontWeight: 700 }}>
+            No photo yet
+          </div>
+        )}
         <span style={{
           position: 'absolute', top: 12, right: 12, fontSize: 10, fontWeight: 800,
           letterSpacing: '0.06em', textTransform: 'uppercase', padding: '6px 10px',
           borderRadius: 999, color: '#fff', background: 'var(--grad)'
         }}>VividPress</span>
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 20 }}>
+        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', position: 'absolute', bottom: 14, left: 0, right: 0 }}>
           {colors.map((c) => (
             <button
               key={c.name}
