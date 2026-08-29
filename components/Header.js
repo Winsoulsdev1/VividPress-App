@@ -37,6 +37,7 @@ export default function Header() {
 
         <Link
           href="/cart"
+          id="cart-icon"
           aria-label="View cart"
           style={{
             position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
