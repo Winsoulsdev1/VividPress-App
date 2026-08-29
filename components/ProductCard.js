@@ -147,6 +147,13 @@ export default function ProductCard({ product }) {
             />
             Add branding to this item
           </label>
+          {wantsBranding && (
+            <p style={{ fontSize: 12, marginTop: 6, color: 'var(--magenta)', fontWeight: 700 }}>
+              {brandingImageUrl
+                ? '+ ₦4,500 for text + image branding'
+                : '+ ₦2,500 for text-only branding (add an image below for ₦4,500 instead)'}
+            </p>
+          )}
         </div>
 
         {wantsBranding && (
