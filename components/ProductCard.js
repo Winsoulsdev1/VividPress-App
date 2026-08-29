@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useCart } from '../lib/cart';
 
 const FONT_OPTIONS = [
@@ -30,7 +30,8 @@ export default function ProductCard({ product }) {
   const [brandingImageUrl, setBrandingImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [added, setAdded] = useState(false);
+const [added, setAdded] = useState(false);
+  const imageRef = useRef(null);
 
   const unitPrice = product.price_min;
 
@@ -63,7 +64,45 @@ export default function ProductCard({ product }) {
     }
   }
 
+ function flyToCart() {
+    const startEl = imageRef.current;
+    const endEl = document.getElementById('cart-icon');
+    if (!startEl || !endEl || !displayImage) return;
+
+    const startRect = startEl.getBoundingClientRect();
+    const endRect = endEl.getBoundingClientRect();
+
+    const flyer = document.createElement('img');
+    flyer.src = displayImage;
+    flyer.style.position = 'fixed';
+    flyer.style.left = startRect.left + 'px';
+    flyer.style.top = startRect.top + 'px';
+    flyer.style.width = startRect.width + 'px';
+    flyer.style.height = startRect.height + 'px';
+    flyer.style.objectFit = 'cover';
+    flyer.style.borderRadius = '12px';
+    flyer.style.zIndex = 9999;
+    flyer.style.pointerEvents = 'none';
+    flyer.style.transition = 'transform 0.7s cubic-bezier(0.5, -0.3, 0.7, 1), opacity 0.7s ease';
+    flyer.style.transform = 'translate(0px, 0px) scale(1)';
+    flyer.style.opacity = '1';
+    document.body.appendChild(flyer);
+
+    const dx = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+    const dy = (endRect.top + endRect.height / 2) - (startRect.top + startRect.height / 2);
+
+    requestAnimationFrame(() => {
+      flyer.style.transform = `translate(${dx}px, ${dy}px) scale(0.1)`;
+      flyer.style.opacity = '0.3';
+    });
+
+    setTimeout(() => {
+      flyer.remove();
+    }, 720);
+  }
+
   function handleAdd() {
+    flyToCart();
     addItem({
       productId: product.id,
       name: product.name,
@@ -89,6 +128,7 @@ export default function ProductCard({ product }) {
       }}>
         {displayImage ? (
           <img
+            ref={imageRef}
             src={displayImage}
             alt={product.name}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
