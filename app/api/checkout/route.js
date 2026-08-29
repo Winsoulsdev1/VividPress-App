@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { initializeTransaction } from '../../../lib/paystack';
 
+const BRANDING_FEE_TEXT_ONLY = 2500;
+const BRANDING_FEE_TEXT_AND_IMAGE = 4500;
+
 function generateTrackingCode() {
   const random = crypto.randomUUID().split('-')[0].toUpperCase();
   return `VP-${random}`;
+}
+
+function calculateBrandingFee(item) {
+  if (!item.brandingRequested) return 0;
+  // Image branding costs more than text-only branding.
+  if (item.brandingImageUrl) return BRANDING_FEE_TEXT_AND_IMAGE;
+  return BRANDING_FEE_TEXT_ONLY;
 }
 
 export async function POST(req) {
@@ -38,15 +48,23 @@ export async function POST(req) {
         return NextResponse.json({ error: `${i.name || 'An item'} is no longer available` }, { status: 400 });
       }
       const quantity = Math.max(1, Number(i.quantity) || 1);
+      // SECURITY: the branding fee is calculated here from the branding request
+      // itself (was branding requested? was an image uploaded?) — never trust
+      // a fee amount sent from the browser.
+      const brandingFee = calculateBrandingFee(i);
       verifiedItems.push({
         ...i,
         quantity,
         unitPrice: product.price_min, // real price, ignoring whatever the browser sent
+        brandingFee,
         name: product.name,
       });
     }
 
-    const subtotal = verifiedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    const subtotal = verifiedItems.reduce(
+      (sum, i) => sum + (i.unitPrice + i.brandingFee) * i.quantity,
+      0
+    );
     const trackingCode = generateTrackingCode();
 
     // 1. Create the order
@@ -80,7 +98,8 @@ export async function POST(req) {
       branding_color: i.brandingColor,
       branding_image_url: i.brandingImageUrl,
       unit_price: i.unitPrice,
-      line_total: i.unitPrice * i.quantity,
+      branding_fee: i.brandingFee,
+      line_total: (i.unitPrice + i.brandingFee) * i.quantity,
     }));
 
     const { error: itemsError } = await supabaseAdmin.from('order_items').insert(itemRows);
